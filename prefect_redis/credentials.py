@@ -9,12 +9,17 @@ from pydantic.types import SecretStr
 from redis.asyncio import redis
 
 
-class RedisBlock(WritableFileSystem):
+class RedisCredentials(WritableFileSystem):
     """
-    A sample block that holds a value.
+    Block used to manage authentication with Redis
 
     Args:
-        value (str): The value to store.
+        host (str): The value to store.
+        port (int): The value to store.
+        db (int): The value to store.
+        username (str): The value to store.
+        password (str): The value to store.
+        connection_string (str): The value to store.
 
     Example:
         Create a new block from hostname, username and password:
