@@ -1,11 +1,11 @@
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional
 
 import cloudpickle
 from prefect import task
 
 if TYPE_CHECKING:
-    import redis
     from .credentials import RedisCredentials
+
 
 @task
 async def redis_set(
@@ -15,7 +15,7 @@ async def redis_set(
     ex: Optional[float] = None,
     px: Optional[float] = None,
     nx: bool = False,
-    xx: bool = False
+    xx: bool = False,
 ) -> None:
     """Set a Redis key to a any value. Will use cloudpickle to convert `value` to
     binary representation.
@@ -29,7 +29,9 @@ async def redis_set(
         nx: If set to `True`, set the value at `key` to `value` only if it does not already exist
         xx: If set tot `True`, set the value at `key` to `value` only if it already exists
     """
-    return await redis_set_binary.fn(credentials, key, cloudpickle.dumps(value), ex, px, nx, xx)
+    return await redis_set_binary.fn(
+        credentials, key, cloudpickle.dumps(value), ex, px, nx, xx
+    )
 
 
 @task
@@ -40,7 +42,7 @@ async def redis_set_binary(
     ex: Optional[float] = None,
     px: Optional[float] = None,
     nx: bool = False,
-    xx: bool = False
+    xx: bool = False,
 ) -> None:
     """Set a Redis key to a binary value
 

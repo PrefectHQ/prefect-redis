@@ -1,8 +1,7 @@
-"""This is an example blocks module"""
+"""Redis credentials handling"""
 
 from typing import Optional, Union
 
-from prefect.blocks.core import Block
 from prefect.filesystems import WritableFileSystem
 from pydantic import Field
 from pydantic.types import SecretStr
@@ -44,6 +43,7 @@ class RedisCredentials(WritableFileSystem):
         redis_client = block.get_client()
         ```
     """
+
     DEFAULT_PORT = 6379
 
     host: Optional[str] = Field(default=None, description="Redis hostname")
@@ -51,7 +51,9 @@ class RedisCredentials(WritableFileSystem):
     db: int = Field(default=0, description="Redis DB index")
     username: Optional[SecretStr] = Field(default=None, description="Redis username")
     password: Optional[SecretStr] = Field(default=None, description="Redis password")
-    connection_string: Optional[SecretStr] = Field(default=None, description="Redis connection string")
+    connection_string: Optional[SecretStr] = Field(
+        default=None, description="Redis connection string"
+    )
 
     def block_initialization(self) -> None:
         """Validate parameters"""
@@ -64,6 +66,14 @@ class RedisCredentials(WritableFileSystem):
             raise ValueError("Missing password")
 
     async def read_path(self, path: str) -> bytes:
+        """Read a redis key
+
+        Args:
+            path: Redis key to read from
+
+        Returns:
+            Contents at key as bytes
+        """
         client = self.get_client()
         ret = client.get(path)
 
@@ -71,6 +81,12 @@ class RedisCredentials(WritableFileSystem):
         return ret
 
     async def write_path(self, path: str, content: bytes) -> None:
+        """Write to a redis key
+
+        Args:
+            path: Redis key to write to
+            content: Binary object to write
+        """
         client = self.get_client()
         ret = await client.set(path, content)
 
@@ -78,10 +94,20 @@ class RedisCredentials(WritableFileSystem):
         return ret
 
     def get_client(self) -> redis.Redis:
+        """Get Redis Client
+
+        Returns:
+            An initialized Redis async client
+        """
         if self.connection_string:
             return redis.Redis.from_url(self.connection_string)
-        return redis.Redis(host=self.host, port=self.port,
-                username=self.username, password=self.password, db=self.db)
+        return redis.Redis(
+            host=self.host,
+            port=self.port,
+            username=self.username,
+            password=self.password,
+            db=self.db,
+        )
 
     @classmethod
     def from_host(
@@ -89,8 +115,8 @@ class RedisCredentials(WritableFileSystem):
         host: str,
         username: Union[None, str, SecretStr],
         password: Union[None, str, SecretStr],
-        port: int = DEFAULT_PORT
-    ) -> "RedisBlock":
+        port: int = DEFAULT_PORT,
+    ) -> "RedisCredentials":
         """Create block from hostname, username and password
 
         Args:
@@ -98,13 +124,16 @@ class RedisCredentials(WritableFileSystem):
             username: Redis username
             password: Redis password
             port: Redis port
+
+        Returns:
+            `RedisCredentials` instance
         """
-        return cls(host=host, username=username, password=password, port=port) # type: ignore
-    
+        return cls(host=host, username=username, password=password, port=port)  # type: ignore
+
     @classmethod
     def from_connection_string(
         cls, connection_string: Union[str, SecretStr]
-    ) -> "RedisBlock":
+    ) -> "RedisCredentials":
         """Create block from a Redis connection string
 
         Supports the following URL schemes:
@@ -116,6 +145,8 @@ class RedisCredentials(WritableFileSystem):
 
         Args:
             connection_string: Redis connection string
-        """
-        return cls(connection_string=connection_string) #type: ignore
 
+        Returns:
+            `RedisCredentials` instance
+        """
+        return cls(connection_string=connection_string)  # type: ignore
