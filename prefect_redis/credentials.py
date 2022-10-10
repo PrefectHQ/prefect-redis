@@ -44,6 +44,9 @@ class RedisCredentials(WritableFileSystem):
         ```
     """
 
+    _logo_url = "https://stprododpcmscdnendpoint.azureedge.net/assets/icons/redis.png"  # type: ignore
+
+
     DEFAULT_PORT = 6379
 
     host: Optional[str] = Field(default=None, description="Redis hostname")
