@@ -1,27 +1,32 @@
-"""This is an example blocks module"""
+"""Redis credentials handling"""
 
 from typing import Optional, Union
 
-from prefect.blocks.core import Block
+import redis.asyncio as redis
 from prefect.filesystems import WritableFileSystem
 from pydantic import Field
 from pydantic.types import SecretStr
-from redis.asyncio import redis
 
 
-class RedisBlock(WritableFileSystem):
+class RedisCredentials(WritableFileSystem):
     """
-    A sample block that holds a value.
+    Block used to manage authentication with Redis
 
     Args:
-        value (str): The value to store.
+        host (str): The value to store.
+        port (int): The value to store.
+        db (int): The value to store.
+        username (str): The value to store.
+        password (str): The value to store.
+        connection_string (str): The value to store.
 
     Example:
         Create a new block from hostname, username and password:
         ```python
         from prefect_redis import RedisBlock
 
-        block = RedisBlock.from_host(host="myredishost.com", username="redis", password="SuperSecret")
+        block = RedisBlock.from_host(
+            host="myredishost.com", username="redis", password="SuperSecret")
         block.save("BLOCK_NAME")
         ```
 
@@ -39,6 +44,9 @@ class RedisBlock(WritableFileSystem):
         redis_client = block.get_client()
         ```
     """
+
+    _logo_url = "https://stprododpcmscdnendpoint.azureedge.net/assets/icons/redis.png"
+
     DEFAULT_PORT = 6379
 
     host: Optional[str] = Field(default=None, description="Redis hostname")
@@ -46,7 +54,9 @@ class RedisBlock(WritableFileSystem):
     db: int = Field(default=0, description="Redis DB index")
     username: Optional[SecretStr] = Field(default=None, description="Redis username")
     password: Optional[SecretStr] = Field(default=None, description="Redis password")
-    connection_string: Optional[SecretStr] = Field(default=None, description="Redis connection string")
+    connection_string: Optional[SecretStr] = Field(
+        default=None, description="Redis connection string"
+    )
 
     def block_initialization(self) -> None:
         """Validate parameters"""
@@ -59,13 +69,27 @@ class RedisBlock(WritableFileSystem):
             raise ValueError("Missing password")
 
     async def read_path(self, path: str) -> bytes:
+        """Read a redis key
+
+        Args:
+            path: Redis key to read from
+
+        Returns:
+            Contents at key as bytes
+        """
         client = self.get_client()
-        ret = client.get(path)
+        ret = await client.get(path)
 
         await client.close()
         return ret
 
     async def write_path(self, path: str, content: bytes) -> None:
+        """Write to a redis key
+
+        Args:
+            path: Redis key to write to
+            content: Binary object to write
+        """
         client = self.get_client()
         ret = await client.set(path, content)
 
@@ -73,10 +97,20 @@ class RedisBlock(WritableFileSystem):
         return ret
 
     def get_client(self) -> redis.Redis:
+        """Get Redis Client
+
+        Returns:
+            An initialized Redis async client
+        """
         if self.connection_string:
-            return redis.Redis.from_url(self.connection_string)
-        return redis.Redis(host=self.host, port=self.port,
-                username=self.username, password=self.password, db=self.db)
+            return redis.Redis.from_url(self.connection_string.get_secret_value())
+        return redis.Redis(
+            host=self.host,
+            port=self.port,
+            username=self.username.get_secret_value() if self.username else None,
+            password=self.password.get_secret_value() if self.password else None,
+            db=self.db,
+        )
 
     @classmethod
     def from_host(
@@ -84,8 +118,8 @@ class RedisBlock(WritableFileSystem):
         host: str,
         username: Union[None, str, SecretStr],
         password: Union[None, str, SecretStr],
-        port: int = DEFAULT_PORT
-    ) -> "RedisBlock":
+        port: int = DEFAULT_PORT,
+    ) -> "RedisCredentials":
         """Create block from hostname, username and password
 
         Args:
@@ -93,13 +127,16 @@ class RedisBlock(WritableFileSystem):
             username: Redis username
             password: Redis password
             port: Redis port
+
+        Returns:
+            `RedisCredentials` instance
         """
-        return cls(host=host, username=username, password=password, port=port) # type: ignore
-    
+        return cls(host=host, username=username, password=password, port=port)
+
     @classmethod
     def from_connection_string(
         cls, connection_string: Union[str, SecretStr]
-    ) -> "RedisBlock":
+    ) -> "RedisCredentials":
         """Create block from a Redis connection string
 
         Supports the following URL schemes:
@@ -107,10 +144,14 @@ class RedisBlock(WritableFileSystem):
         - `rediss://` creates a SSL wrapped TCP socket connection
         - `unix://` creates a Unix Domain Socket connection
 
-        See [Redis docs](https://redis.readthedocs.io/en/stable/examples/connection_examples.html#Connecting-to-Redis-instances-by-specifying-a-URL-scheme.) for more info.
+        See [Redis docs](https://redis.readthedocs.io/en/stable/examples
+        /connection_examples.html#Connecting-to-Redis-instances-by-specifying-a-URL
+        -scheme.) for more info.
 
         Args:
             connection_string: Redis connection string
-        """
-        return cls(connection_string=connection_string) #type: ignore
 
+        Returns:
+            `RedisCredentials` instance
+        """
+        return cls(connection_string=connection_string)
