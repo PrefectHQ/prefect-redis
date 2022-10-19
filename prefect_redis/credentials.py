@@ -2,10 +2,10 @@
 
 from typing import Optional, Union
 
+import redis.asyncio as redis
 from prefect.filesystems import WritableFileSystem
 from pydantic import Field
 from pydantic.types import SecretStr
-import redis.asyncio as redis
 
 
 class RedisCredentials(WritableFileSystem):
@@ -25,7 +25,8 @@ class RedisCredentials(WritableFileSystem):
         ```python
         from prefect_redis import RedisBlock
 
-        block = RedisBlock.from_host(host="myredishost.com", username="redis", password="SuperSecret")
+        block = RedisBlock.from_host(
+            host="myredishost.com", username="redis", password="SuperSecret")
         block.save("BLOCK_NAME")
         ```
 
@@ -44,7 +45,7 @@ class RedisCredentials(WritableFileSystem):
         ```
     """
 
-    _logo_url = "https://stprododpcmscdnendpoint.azureedge.net/assets/icons/redis.png"  # type: ignore
+    _logo_url = "https://stprododpcmscdnendpoint.azureedge.net/assets/icons/redis.png"
 
     DEFAULT_PORT = 6379
 
@@ -130,12 +131,7 @@ class RedisCredentials(WritableFileSystem):
         Returns:
             `RedisCredentials` instance
         """
-        return cls(
-            host=host,
-            username=username,
-            password=password,
-            port=port
-        )
+        return cls(host=host, username=username, password=password, port=port)
 
     @classmethod
     def from_connection_string(
@@ -148,7 +144,9 @@ class RedisCredentials(WritableFileSystem):
         - `rediss://` creates a SSL wrapped TCP socket connection
         - `unix://` creates a Unix Domain Socket connection
 
-        See [Redis docs](https://redis.readthedocs.io/en/stable/examples/connection_examples.html#Connecting-to-Redis-instances-by-specifying-a-URL-scheme.) for more info.
+        See [Redis docs](https://redis.readthedocs.io/en/stable/examples
+        /connection_examples.html#Connecting-to-Redis-instances-by-specifying-a-URL
+        -scheme.) for more info.
 
         Args:
             connection_string: Redis connection string

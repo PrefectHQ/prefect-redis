@@ -1,34 +1,54 @@
 """Test Redis tasks"""
-import string
 import os
 import random
+import string
 from typing import Dict
 
 import pytest
 
 from prefect_redis import (
-    RedisCredentials, redis_set, redis_set_binary, redis_get, redis_get_binary, redis_execute,
+    RedisCredentials,
+    redis_execute,
+    redis_get,
+    redis_get_binary,
+    redis_set,
+    redis_set_binary,
 )
 
 
 @pytest.fixture
 def environ_credentials() -> Dict:
+    """Get redis credentials from environment
+
+    Returns:
+        Redis credentials as a dict, can be piped directly into `RedisCredentials`
+    """
     return {
         "host": os.environ["TEST_REDIS_HOST"],
         "port": os.environ["TEST_REDIS_PORT"],
         "db": os.environ.get("TEST_REDIS_DB", "0"),
         "username": os.environ["TEST_REDIS_USERNAME"],
-        "password": os.environ["TEST_REDIS_PASSWORD"]
+        "password": os.environ["TEST_REDIS_PASSWORD"],
     }
 
 
 @pytest.fixture
 def redis_credentials(environ_credentials: Dict) -> RedisCredentials:
+    """Get `RedisCredentials` object from environment
+
+    Returns:
+        `RedisCredentials` object
+    """
     return RedisCredentials(**environ_credentials)
 
 
 @pytest.fixture
 def random_key() -> str:
+    """Generate a random key
+
+    Returns:
+        A random string of length 10
+    """
     return "".join(random.sample(string.ascii_lowercase, 10))
 
 
@@ -43,8 +63,11 @@ async def test_from_credentials(redis_credentials: RedisCredentials):
 
 @pytest.mark.asyncio
 async def test_from_connection_string(environ_credentials: Dict):
+    """Test instantiating from connection string"""
 
-    connection_string = "redis://{username}:{password}@{host}:{port}/{db}".format(**environ_credentials)
+    connection_string = "redis://{username}:{password}@{host}:{port}/{db}".format(
+        **environ_credentials
+    )
     redis_credentials = RedisCredentials.from_connection_string(connection_string)
 
     client = redis_credentials.get_client()
@@ -55,6 +78,7 @@ async def test_from_connection_string(environ_credentials: Dict):
 
 @pytest.mark.asyncio
 async def test_set_get_bytes(redis_credentials: RedisCredentials, random_key: str):
+    """Test writing and reading back a byte-string"""
 
     ref_string = b"hello world"
 
@@ -65,6 +89,7 @@ async def test_set_get_bytes(redis_credentials: RedisCredentials, random_key: st
 
 
 async def test_set_get(redis_credentials: RedisCredentials, random_key: str):
+    """Test writing and reading back a string"""
 
     ref_string = "hello world"
 
@@ -75,6 +100,7 @@ async def test_set_get(redis_credentials: RedisCredentials, random_key: str):
 
 
 async def test_set_obj(redis_credentials: RedisCredentials, random_key: str):
+    """Test writing and reading back an object"""
 
     ref_obj = ("foobar", 123, {"hello": "world"})
 
@@ -96,5 +122,6 @@ async def test_set_obj(redis_credentials: RedisCredentials, random_key: str):
 
 
 async def test_execute(redis_credentials: RedisCredentials):
+    """Test executing a command"""
 
     await redis_execute.fn(redis_credentials, "ping")

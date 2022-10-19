@@ -1,3 +1,4 @@
+"""Redis tasks"""
 from typing import TYPE_CHECKING, Any, Optional
 
 import cloudpickle
@@ -23,11 +24,14 @@ async def redis_set(
     Args:
         credentials: Redis credential block
         key: Key to be set
-        value: Value to be set to `key`. Does not accept open connections such as database-connections
+        value: Value to be set to `key`. Does not accept open connections such as
+            database-connections
         ex: If provided, sets an expire flag in seconds on `key` set
         px: If provided, sets an expire flag in milliseconds on `key` set
-        nx: If set to `True`, set the value at `key` to `value` only if it does not already exist
-        xx: If set tot `True`, set the value at `key` to `value` only if it already exists
+        nx: If set to `True`, set the value at `key` to `value` only if it does not
+            already exist
+        xx: If set tot `True`, set the value at `key` to `value` only if it already
+            exists
     """
     return await redis_set_binary.fn(
         credentials, key, cloudpickle.dumps(value), ex, px, nx, xx
@@ -52,8 +56,10 @@ async def redis_set_binary(
         value: Value to be set to `key`. Must be bytes
         ex: If provided, sets an expire flag in seconds on `key` set
         px: If provided, sets an expire flag in milliseconds on `key` set
-        nx: If set to `True`, set the value at `key` to `value` only if it does not already exist
-        xx: If set tot `True`, set the value at `key` to `value` only if it already exists
+        nx: If set to `True`, set the value at `key` to `value` only if it does not
+            already exist
+        xx: If set tot `True`, set the value at `key` to `value` only if it already
+            exists
     """
     client = credentials.get_client()
 
