@@ -19,12 +19,12 @@ jobs:
 
       - name: Install packages
         run: |
-          python -m pip install --upgrade pip build
+          python -m pip install --upgrade pip build poetry
           python -m pip install --upgrade --upgrade-strategy eager -e .[dev]
 
       - name: Build a binary wheel and a source tarball
         run: |
-          python -m build --sdist --wheel --outdir dist/
+          poetry build
 
       - name: Publish build artifacts
         uses: actions/upload-artifact@v3
@@ -61,9 +61,9 @@ jobs:
 
       - name: Build docs
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade --upgrade-strategy eager -e .[dev]
-          mkdocs build
+          python -m pip install --upgrade pip poetry
+          poetry install
+          poetry run mkdocs build
 
       - name: Publish docs
         uses: JamesIves/github-pages-deploy-action@v4.4.1
