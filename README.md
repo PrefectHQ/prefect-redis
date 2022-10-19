@@ -50,16 +50,26 @@ Note, to use the `load` method on Blocks, you must already have a block document
 
 ```python
 from prefect import flow
-from prefect_redis.tasks import (
-    goodbye_prefect_redis,
-    hello_prefect_redis,
+from prefect_redis import (
+    RedisCredentials,
+    redis_set,
+    redis_get,
 )
 
 
 @flow
 def example_flow():
-    hello_prefect_redis
-    goodbye_prefect_redis
+    
+    # Load credentials-block
+    credentials = RedisCredentials.load("my-redis-store")
+    
+    # Set a redis-key - Supports any object that is not a live connection
+    redis_set(credentials, "mykey", {"foo": "bar"})
+    
+    # Get a redis key
+    val = redis_get(credentials, "mykey")
+    
+    print(val)
 
 example_flow()
 ```
