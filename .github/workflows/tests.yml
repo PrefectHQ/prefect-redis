@@ -37,5 +37,5 @@ jobs:
           TEST_REDIS_USERNAME: ${{ secrets.TEST_REDIS_USERNAME }}
           TEST_REDIS_PASSWORD: ${{ secrets.TEST_REDIS_PASSWORD }}
         run: |
-          coverage run --branch -m pytest tests -vv
-          coverage report
+          poetry run coverage run --branch -m pytest tests -vv
+          poetry run coverage report
