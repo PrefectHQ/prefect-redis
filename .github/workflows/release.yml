@@ -24,6 +24,7 @@ jobs:
 
       - name: Build a binary wheel and a source tarball
         run: |
+          poetry version $(git describe --tags --abbrev=0)
           poetry build
 
       - name: Publish build artifacts
