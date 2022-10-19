@@ -4,6 +4,9 @@ version = "0.1.0"
 description = "Prefect integrations for working with Redis"
 authors = ["Thomas Li Fredriksen <thomas.fredriksen@oceandata.earth>"]
 license = "Apache-2.0"
+packages = [
+    {include="prefect_redis"}
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"
