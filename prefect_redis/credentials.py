@@ -5,7 +5,7 @@ from typing import Optional, Union
 from prefect.filesystems import WritableFileSystem
 from pydantic import Field
 from pydantic.types import SecretStr
-from redis.asyncio import redis
+import redis.asyncio as redis
 
 
 class RedisCredentials(WritableFileSystem):
@@ -46,7 +46,6 @@ class RedisCredentials(WritableFileSystem):
 
     _logo_url = "https://stprododpcmscdnendpoint.azureedge.net/assets/icons/redis.png"  # type: ignore
 
-
     DEFAULT_PORT = 6379
 
     host: Optional[str] = Field(default=None, description="Redis hostname")
@@ -78,7 +77,7 @@ class RedisCredentials(WritableFileSystem):
             Contents at key as bytes
         """
         client = self.get_client()
-        ret = client.get(path)
+        ret = await client.get(path)
 
         await client.close()
         return ret
@@ -103,12 +102,12 @@ class RedisCredentials(WritableFileSystem):
             An initialized Redis async client
         """
         if self.connection_string:
-            return redis.Redis.from_url(self.connection_string)
+            return redis.Redis.from_url(self.connection_string.get_secret_value())
         return redis.Redis(
             host=self.host,
             port=self.port,
-            username=self.username,
-            password=self.password,
+            username=self.username.get_secret_value() if self.username else None,
+            password=self.password.get_secret_value() if self.password else None,
             db=self.db,
         )
 
@@ -131,7 +130,12 @@ class RedisCredentials(WritableFileSystem):
         Returns:
             `RedisCredentials` instance
         """
-        return cls(host=host, username=username, password=password, port=port)  # type: ignore
+        return cls(
+            host=host,
+            username=username,
+            password=password,
+            port=port
+        )
 
     @classmethod
     def from_connection_string(
@@ -152,4 +156,4 @@ class RedisCredentials(WritableFileSystem):
         Returns:
             `RedisCredentials` instance
         """
-        return cls(connection_string=connection_string)  # type: ignore
+        return cls(connection_string=connection_string)

@@ -58,7 +58,7 @@ async def redis_set_binary(
     client = credentials.get_client()
 
     await client.set(key, value, ex=ex, px=px, nx=nx, xx=xx)
-    client.close()
+    await client.close()
 
 
 @task
@@ -99,7 +99,7 @@ async def redis_get_binary(
 
     ret = await client.get(key)
 
-    client.close()
+    await client.close()
     return ret
 
 
@@ -120,6 +120,6 @@ async def redis_execute(
     client = credentials.get_client()
 
     ret = await client.execute_command(cmd)
-    client.close()
+    await client.close()
 
     return ret

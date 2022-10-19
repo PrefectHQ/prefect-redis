@@ -139,3 +139,6 @@ dmypy.json
 
 # Jupyter notebook
 *.ipynb
+
+# JetBrains IDEs
+.idea/
