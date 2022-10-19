@@ -32,6 +32,10 @@ jobs:
       - name: Run tests
         env:
           PREFECT_ORION_DATABASE_CONNECTION_URL: "sqlite+aiosqlite:///./orion-tests.db"
+          TEST_REDIS_HOST: ${{ secrets.TEST_REDIS_HOST }}
+          TEST_REDIS_PORT: ${{ secrets.TEST_REDIS_PORT }}
+          TEST_REDIS_USERNAME: ${{ secrets.TEST_REDIS_USERNAME }}
+          TEST_REDIS_PASSWORD: ${{ secrets.TEST_REDIS_PASSWORD }}
         run: |
           coverage run --branch -m pytest tests -vv
           coverage report
