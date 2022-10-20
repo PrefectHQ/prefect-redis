@@ -12,7 +12,7 @@ class RedisCredentials(WritableFileSystem):
     """
     Block used to manage authentication with Redis
 
-    Args:
+    Attributes:
         host (str): The value to store.
         port (int): The value to store.
         db (int): The value to store.

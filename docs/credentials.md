@@ -1,6 +1,6 @@
 ---
-description: 
+description:
 notes: This documentation page is generated from source file docstrings.
 ---
 
-::: prefect_redis.flows
+::: prefect_redis.credentials
